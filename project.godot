@@ -1,0 +1,142 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "EditorVCSInterface",
+"class": "GitAPI",
+"language": "NativeScript",
+"path": "res://addons/godot-git-plugin/git_api.gdns"
+}, {
+"base": "Object",
+"class": "ImageBlock",
+"language": "GDScript",
+"path": "res://image_block.gd"
+}, {
+"base": "Object",
+"class": "LD14",
+"language": "GDScript",
+"path": "res://LD14.gd"
+}, {
+"base": "Object",
+"class": "LD14_Frame",
+"language": "GDScript",
+"path": "res://LD14_Frame.gd"
+}, {
+"base": "Object",
+"class": "ProtocolItem",
+"language": "GDScript",
+"path": "res://Protocol/ProtocolItem.gd"
+}, {
+"base": "Object",
+"class": "ProtocolPaser",
+"language": "GDScript",
+"path": "res://Protocol/ProtocolPaser.gd"
+}, {
+"base": "ProtocolItem",
+"class": "ProtocolToken",
+"language": "GDScript",
+"path": "res://Protocol/ProtocolToken.gd"
+}, {
+"base": "Node",
+"class": "SerialStream",
+"language": "GDScript",
+"path": "res://SerialStream.gd"
+}, {
+"base": "Node",
+"class": "TcpStream",
+"language": "GDScript",
+"path": "res://TcpStream.gd"
+} ]
+_global_script_class_icons={
+"GitAPI": "",
+"ImageBlock": "",
+"LD14": "",
+"LD14_Frame": "",
+"ProtocolItem": "",
+"ProtocolPaser": "",
+"ProtocolToken": "",
+"SerialStream": "",
+"TcpStream": ""
+}
+
+[application]
+
+config/name="GDOfSerial Demo"
+run/main_scene="res://EspCamera.tscn"
+config/icon="res://icon.png"
+
+[autoload]
+
+OfSerial="*res://addons/GDOfSerial/GDOfSerial.gdns"
+TcpClient="*res://tcp_client.gd"
+TcpManager="*res://tcp_manager.gd"
+Ctrl="*res://Ctrl.gd"
+
+[debug]
+
+gdscript/warnings/return_value_discarded=false
+
+[editor]
+
+version_control_autoload_on_startup=true
+version_control_plugin_name="GitAPI"
+
+[editor_plugins]
+
+enabled=PoolStringArray(  )
+
+[global]
+
+fps=false
+
+[gui]
+
+common/drop_mouse_on_gui_input_disabled=true
+
+[input]
+
+enter={
+"deadzone": 0.5,
+"events": [  ]
+}
+ui_w={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":0,"physical_scancode":87,"unicode":0,"echo":false,"script":null)
+ ]
+}
+ui_a={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":0,"physical_scancode":65,"unicode":0,"echo":false,"script":null)
+ ]
+}
+ui_s={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":0,"physical_scancode":83,"unicode":0,"echo":false,"script":null)
+ ]
+}
+ui_d={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":0,"physical_scancode":68,"unicode":0,"echo":false,"script":null)
+ ]
+}
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[physics]
+
+common/physics_fps=240
+common/enable_pause_aware_picking=true
+
+[rendering]
+
+quality/driver/driver_name="GLES2"
+environment/default_environment="res://default_env.tres"

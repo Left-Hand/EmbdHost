@@ -1,0 +1,45 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://shaders/circle.gdshader" type="Shader" id=1]
+[ext_resource path="res://scenes/Joystick_V2/Joystick.gd" type="Script" id=2]
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = ExtResource( 1 )
+
+[sub_resource type="ShaderMaterial" id=3]
+shader = ExtResource( 1 )
+
+[node name="Joystick" type="Control"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+
+[node name="Border" type="CenterContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -50.0
+margin_top = -50.0
+margin_right = 50.0
+margin_bottom = 50.0
+script = ExtResource( 2 )
+
+[node name="BorderSym" type="ColorRect" parent="Border"]
+material = SubResource( 2 )
+margin_right = 100.0
+margin_bottom = 100.0
+rect_min_size = Vector2( 100, 100 )
+color = Color( 1, 1, 1, 0.215686 )
+
+[node name="Inner" type="CenterContainer" parent="Border/BorderSym"]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="InnerSym" type="ColorRect" parent="Border/BorderSym/Inner"]
+material = SubResource( 3 )
+margin_right = 40.0
+margin_bottom = 40.0
+rect_min_size = Vector2( 40, 40 )
+color = Color( 0.356863, 0.580392, 0.662745, 0.764706 )
