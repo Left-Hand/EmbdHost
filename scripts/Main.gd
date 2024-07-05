@@ -1,6 +1,6 @@
 extends Node
 
-onready var _serial: OfSerial = $OfSerial
+#onready var _serial: OfSerial = $OfSerial
 onready var _data_line: LineEdit = $DataContainer/DataLine
 onready var _terminal: TextEdit = $Terminal
 onready var _hexa: CheckButton = $DataContainer/Hexa

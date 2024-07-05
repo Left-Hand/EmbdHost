@@ -9,7 +9,7 @@ const shot_command:String = 'S %d %d'
 var shot_spec:int = 2
 var shot_period:int = 200
 
-onready var stream := SerialStream.new(self)
+onready var stream := UdpStream.new(self)
 
 signal rx_data(buf)
 signal hp_notified(hp)
@@ -30,8 +30,10 @@ func send_line(ss:String):
 
 
 func move_notify(vector:Vector2):
-	send_line(move_command%[vector.y, vector.x])
+	send_line(move_command%[vector.y, - pow(abs(vector.x), 0.8) * sign(vector.x) * TAU])
 
+func shot_notify():
+	send_line(shot_command%[int(min(shot_period, 255)), shot_spec])
 
 func left_joystick_drag(vector:Vector2):
 	move_notify(vector)
@@ -41,25 +43,28 @@ func left_joystick_tap(vector:Vector2):
 
 func left_joystick_release(_vector:Vector2):
 	move_notify(Vector2(0,0))
-
+	move_notify(Vector2(0,0))
 
 func toward_notify(yaw_and_pitch:Vector2):
 	send_line(toward_command%[yaw_and_pitch.x, yaw_and_pitch.y])
 
 
-func toward_update(delta:float):
-	if(not (toward_vector_current - toward_vector_target).length_squared() < 0.0001):
-		toward_vector_current = toward_vector_current.move_toward(toward_vector_target, toward_max_step * delta)
-		toward_notify(toward_vector_current)
+#func toward_update(delta:float):
+#	if(not (toward_vector_current - toward_vector_target).length_squared() < 0.0001):
+#		toward_vector_current = toward_vector_current.move_toward(toward_vector_target, toward_max_step * delta)
+#		toward_notify(toward_vector_current)
 
 
 func right_joystick_drag(vector:Vector2):
-	toward_vector_target = vector
+#	toward_vector_target = vector
+	toward_notify(vector)
 
 
 func right_joystick_tap(vector:Vector2):
-	send_line(shot_command%[int(min(shot_period, 255)), shot_spec])
-	toward_vector_target = vector
+
+#	toward_vector_target = vector
+	shot_notify()
+	toward_notify(vector)
 
 
 func right_joystick_release(_vector:Vector2):
@@ -75,6 +80,7 @@ func set_shot_spec(spec:int):
 
 
 func _ready():
+	stream.connect_stream()
 	pass
 
 func _physics_process(_delta):
@@ -82,6 +88,7 @@ func _physics_process(_delta):
 
 
 func _process(_delta):
-	toward_update(_delta)
+#	toward_update(_delta
+	pass
 
 

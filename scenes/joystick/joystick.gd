@@ -29,6 +29,9 @@ func _process(_delta):
 var frame_dur:int = 10
 var frames:int = 0
 
+#func _input(event):
+#	print(event);
+	
 func tap(vector:Vector2):
 	emit_signal("tap_signal", vector * stick_vector_scaler)
 

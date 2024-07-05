@@ -73,10 +73,10 @@ func the_same_dict(dict:Dictionary) -> bool:
 	return same
  
 
-onready var stream := TcpStream.new(self)
+onready var camera_stream := TcpStream.new(self)
 func _ready() -> void:
-	stream.connect("recv", self, "process_datas")
-	$LineEdit.connect("text_entered", Ctrl, "send_line")
+	camera_stream.connect_stream()
+	camera_stream.connect("recv", self, "process_datas")
 #	$JoystickLeft.connect("control_signal", self, "joystick_l_callback")
 #	$JoystickRight.connect("control_signal", self, "joystick_r_callback")
 	left_joystick.connect("drag_signal", Ctrl, "left_joystick_drag")
@@ -87,7 +87,6 @@ func _ready() -> void:
 	right_joystick.connect("tap_signal", Ctrl, "right_joystick_tap")
 	right_joystick.connect("release_signal", Ctrl, "right_joystick_release")
 
-	udp_server.listen(12345)
 #	image_load_thread.start(self, "image_load_task")
 #	image_recv_thread.start(self, "image_recv_task")
 #	image_data_thread.start(self, "image_data_task")
@@ -103,14 +102,6 @@ var last_image_index:int = 0
 var image_index:int = 0
 var block_total:int = 0
 
-func println(peer:PacketPeerUDP, ss:String):
-	
-#	if(peers.size()):
-	print("[>]", ss)
-#		peers[0].put_packet((ss + "\r\n").to_ascii())
-
-
-#	peer.put_packet((ss + "\r\n").to_ascii())V
 
 
 var frames:int = 0
@@ -121,6 +112,7 @@ func send(ss:String):
 
 var last_dir:Vector2 = Vector2.ZERO
 var last_face:Vector2 = Vector2.ZERO
+
 
 
 func update_velocity(dir:Vector2) -> void:
@@ -139,20 +131,6 @@ func _physics_process(_delta):
 	time_since += _delta
 	t += _delta
 	frames += 1
-
-	udp_server.poll()
-	if udp_server.is_connection_available():
-
-		var peer : PacketPeerUDP = udp_server.take_connection()
-		var pkt = peer.get_packet()
-		var recv:String =  pkt.get_string_from_ascii().strip_edges()
-		if(recv):
-			print("[<]", recv)
-		
-		udp_peer = peer
-
-	if(to_send_list):
-		println(udp_peer, to_send_list.pop_back())
 
 
 func command_recv_task():
@@ -195,6 +173,7 @@ func image_load_task():
 func load_image(datas:PoolByteArray):
 		var image = Image.new()
 		var load_err:int = image.load_jpg_from_buffer(datas)
+		image.flip_y()
 
 	#	var load_err:int = OK
 	#	image.create_from_data(640, 480, false, Image.FORMAT_L8, _buf)
@@ -202,7 +181,7 @@ func load_image(datas:PoolByteArray):
 		if(load_err == OK):
 			var texture = ImageTexture.new()
 			texture.create_from_image(image)
-			$TextureRect.texture = texture
+			$CenterContainer3/view.texture = texture
 
 #func image_data_task():
 #	while(true):

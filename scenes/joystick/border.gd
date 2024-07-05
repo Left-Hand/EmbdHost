@@ -10,7 +10,8 @@ onready var noter_node := get_parent()
 onready var center_node := $center
 
 func set_position(position):
-	stick_pos = position
+	stick_pos = global_position
+#	print(get_global_transform().basis_xform(position), "why")
 	
 func vect_calculate(raw:Vector2) -> Vector2:
 
@@ -21,12 +22,16 @@ func vect_calculate(raw:Vector2) -> Vector2:
 
 
 func _input(event):
+
 	if event is InputEventScreenTouch:
+#		print('??')
 		var displacement:Vector2 = (event.position - stick_pos)
 		if event.is_pressed():
+			print(event.position)
 			if stick_pos.distance_to(event.position) <= RADIUS:
 				evt_index = event.index
 				center_node.position = displacement.limit_length(RADIUS)
+				
 				noter_node.tap(vect_calculate(displacement))
 		elif evt_index != -1:
 			if evt_index == event.index:

@@ -2,7 +2,9 @@ extends Node
 
 class_name SerialStream
 
-onready var instance: OfSerial = $"/root/OfSerial"
+const OfSerial = preload("res://addons/GDOfSerial/GDOfSerial.gdns")
+onready var instance := OfSerial.new()
+
 var connected:bool = false
 var com:String = "COM15"
 var baud:int = 115200
@@ -12,7 +14,7 @@ func _init(parent:Node):
 
 func connect_stream() -> void:
 	var list: Array = instance.get_device_list()
-#	print("????")
+	print("serial list", list)
 	if(list and list.has(com)):
 		instance.begin(list[0], 115200)
 		instance.flush()
@@ -35,14 +37,14 @@ func println(buf):
 			instance.print(buf)
 			instance.print("\r\n")
 			print("[>]", buf)
-			
+
 		TYPE_RAW_ARRAY:
 			var ss:String = buf.get_string_from_ascii()
 			instance.print(ss)
 			instance.print("\r\n")
 			print("[>]", ss)
 
-var remain_ss:String
+var temp_str:String
 
 
 func process_recv_data():
@@ -65,11 +67,31 @@ func process_recv_data():
 #			remain_ss = sp[0]
 #		else:
 #			remain_ss = ""
+	if(instance.available()):
+		var chr:int = ord(instance.read())
+		if(chr == ord('\n')):
+			temp_str.strip_edges()
+			temp_str = ""
+		else:
+			temp_str += char(chr)
 
+#        if(logger.available()){
+#            char chr = logger.read();
+#            if(chr == '\n'){
+#                temp_str.trim();
+#                auto tokens = splitString(temp_str, ' ');
+#                auto argc = tokens[0][0];
+#                tokens.erase(tokens.begin());
+#                parseCommand(argc, tokens);
+#                temp_str = "";
+#            }else{
+#                temp_str.concat(chr);
+#            }
+#        }
 
 func _process(_delta):
 	process_recv_data()
-	
+
 
 func _ready():
 	connect_stream()

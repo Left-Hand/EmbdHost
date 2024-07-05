@@ -3,7 +3,7 @@ extends Node
 class_name TcpStream
 
 
-var host:String = "192.168.6.22"
+var host:String = "172.20.10.3"
 var port:int = 80
 
 var connected:bool = false
@@ -122,8 +122,8 @@ func println(buf):
 	match(typeof(buf)):
 		TYPE_STRING:
 			write(((buf as String) + "\r\n").to_ascii())
-			print("[>]", buf)
+			print("[TCP>]", buf)
 			
 		TYPE_RAW_ARRAY:
 			write((buf as PoolByteArray))
-			print("[>]", (buf as PoolByteArray).get_string_from_ascii())
+			print("[TCP>]", (buf as PoolByteArray).get_string_from_ascii())
