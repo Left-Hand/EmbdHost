@@ -15,6 +15,7 @@ func _init(parent:Node):
 func list():
 	var list: Array = instance.get_device_list()
 	print("serial list", list)
+	#
 
 func connect_stream() -> void:
 	var list: Array = instance.get_device_list()
