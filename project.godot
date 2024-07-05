@@ -17,17 +17,17 @@ _global_script_classes=[ {
 "base": "Object",
 "class": "ImageBlock",
 "language": "GDScript",
-"path": "res://image_block.gd"
+"path": "res://types/image_block.gd"
 }, {
 "base": "Object",
 "class": "LD14",
 "language": "GDScript",
-"path": "res://LD14.gd"
+"path": "res://drivers/LD14/LD14.gd"
 }, {
 "base": "Object",
 "class": "LD14_Frame",
 "language": "GDScript",
-"path": "res://LD14_Frame.gd"
+"path": "res://drivers/LD14/LD14_Frame.gd"
 }, {
 "base": "Object",
 "class": "ProtocolItem",
@@ -44,20 +44,25 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Protocol/ProtocolToken.gd"
 }, {
-"base": "Node",
+"base": "Stream",
 "class": "SerialStream",
 "language": "GDScript",
-"path": "res://SerialStream.gd"
+"path": "res://stream/SerialStream.gd"
+}, {
+"base": "Node",
+"class": "Stream",
+"language": "GDScript",
+"path": "res://stream/Stream.gd"
 }, {
 "base": "Node",
 "class": "TcpStream",
 "language": "GDScript",
-"path": "res://TcpStream.gd"
+"path": "res://stream/TcpStream.gd"
 }, {
 "base": "Node",
 "class": "UdpStream",
 "language": "GDScript",
-"path": "res://UdpStream.gd"
+"path": "res://stream/UdpStream.gd"
 } ]
 _global_script_class_icons={
 "GitAPI": "",
@@ -68,6 +73,7 @@ _global_script_class_icons={
 "ProtocolPaser": "",
 "ProtocolToken": "",
 "SerialStream": "",
+"Stream": "",
 "TcpStream": "",
 "UdpStream": ""
 }
@@ -84,6 +90,7 @@ Ctrl="*res://Ctrl.gd"
 
 [debug]
 
+settings/fps/force_fps=60
 gdscript/warnings/return_value_discarded=false
 
 [display]

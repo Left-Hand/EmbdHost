@@ -1,22 +1,27 @@
-extends Node
+extends Stream
 
-class_name SerialStream
+class_name SerialStream 
 
 const OfSerial = preload("res://addons/GDOfSerial/GDOfSerial.gdns")
 onready var instance := OfSerial.new()
 
-var connected:bool = false
+
 var com:String = "COM15"
 var baud:int = 115200
 
 func _init(parent:Node):
 	parent.add_child(self)
 
+func list():
+	var list: Array = instance.get_device_list()
+	print("serial list", list)
+
 func connect_stream() -> void:
 	var list: Array = instance.get_device_list()
 	print("serial list", list)
+	
 	if(list and list.has(com)):
-		instance.begin(list[0], 115200)
+		instance.begin(com, baud)
 		instance.flush()
 		connected = true
 	else:
@@ -33,7 +38,7 @@ func println(buf):
 		return
 
 	match(typeof(buf)):
-		TYPE_STRING:
+		TYPE_INT, TYPE_STRING:
 			instance.print(buf)
 			instance.print("\r\n")
 			print("[>]", buf)
@@ -44,14 +49,19 @@ func println(buf):
 			instance.print("\r\n")
 			print("[>]", ss)
 
+
+
 var temp_str:String
+var m_frames:int = 0
 
 
 func process_recv_data():
-	pass
+	
 	var recv_len = instance.available()
 	if(recv_len):
-		print("[<]", instance.read_string(instance.available()))
+		var strs = instance.read_string(instance.available()).split("\r\n", false)
+		for lstr in strs:
+			print("[<]", lstr)
 #		var sp:Array = instance.read_string(instance.available()).split("\r\n")
 #		if(sp.size() == 1):
 #			print("[<]", sp[0])
@@ -88,9 +98,13 @@ func process_recv_data():
 #                temp_str.concat(chr);
 #            }
 #        }
+	m_frames += 1
+	if(m_frames % 19 == 0):
+		println(m_frames)
 
 func _process(_delta):
-	process_recv_data()
+	if connected:
+		process_recv_data()
 
 
 func _ready():

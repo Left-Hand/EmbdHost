@@ -1,0 +1,9 @@
+{
+    "search.exclude": {
+        "**/*.cfg": true,
+        "**/*.gdnlib": true,
+        "**/*.gdns": true,
+        "**/*.import": true,
+        "**/*.tscn": true
+    }
+}

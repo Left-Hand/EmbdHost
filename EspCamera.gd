@@ -1,6 +1,8 @@
 extends Control
 
 #onready var _serial: OfSerial = $"/root/OfSerial"
+onready var _serial: SerialStream = SerialStream.new(self)
+
 enum State{
 	IdleL,
 	IdleH,
@@ -125,7 +127,7 @@ func update_face(face:Vector2) -> void:
 		last_face = face
 		send("F " + str(face.x)+" "+ str(face.y))
 
-var udp_peer:PacketPeerUDP = null
+#var udp_peer:PacketPeerUDP = null
 
 func _physics_process(_delta):
 	time_since += _delta
