@@ -53,7 +53,7 @@ func toward_notify(yaw_and_pitch:Vector2):
 #	if(not (toward_vector_current - toward_vector_target).length_squared() < 0.0001):
 #		toward_vector_current = toward_vector_current.move_toward(toward_vector_target, toward_max_step * delta)
 #		toward_notify(toward_vector_current)
-
+#
 
 func right_joystick_drag(vector:Vector2):
 #	toward_vector_target = vector
