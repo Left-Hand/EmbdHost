@@ -15,7 +15,6 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 
 [node name="view" type="Sprite" parent="CenterContainer3"]
-rotation = -1.5708
 scale = Vector2( 2, 2 )
 
 [node name="CenterContainer" type="CenterContainer" parent="."]

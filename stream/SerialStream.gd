@@ -27,8 +27,7 @@ func connect_stream(com:String, baud:int) -> bool:
 	return connected
 
 func println(buf) -> void:
-	if(!connected):
-		return
+
 
 	var ss:String = ""
 	match(typeof(buf)):
@@ -41,11 +40,14 @@ func println(buf) -> void:
 
 		TYPE_RAW_ARRAY:
 			ss = buf.get_string_from_ascii()
-
-	instance.print(ss)
-	instance.print("\r\n")
-	if(self.enable_tx_log):
-		print("[>", self.name, "]", ss)
+	if(!connected):
+		if(self.enable_tx_log):
+			print("[-", self.name, "]", ss)
+	else:
+		instance.print(ss)
+		instance.print("\r\n")
+		if(self.enable_tx_log):
+			print("[>", self.name, "]", ss)
 
 func _recv(ss:String) -> void:
 	if(self.enable_rx_log):

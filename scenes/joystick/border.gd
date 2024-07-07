@@ -24,10 +24,8 @@ func vect_calculate(raw:Vector2) -> Vector2:
 func _input(event):
 
 	if event is InputEventScreenTouch:
-#		print('??')
 		var displacement:Vector2 = (event.position - stick_pos)
 		if event.is_pressed():
-			print(event.position)
 			if stick_pos.distance_to(event.position) <= RADIUS:
 				evt_index = event.index
 				center_node.position = displacement.limit_length(RADIUS)

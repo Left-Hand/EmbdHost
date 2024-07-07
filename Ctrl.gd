@@ -1,86 +1,119 @@
 extends Node
 
-#var l_vector:Vector2
-const toward_command:String = "T %.3f %.3f"
-const move_command:String = "M %.3f %.3f"
+const commands:Dictionary = {
+	"x":"X %.3f",
+	"y":"X %.3f",
+	"z":"Z %.3f",
+	"xy":"XY %.3f %.3f",
+	"xyz":"XYZ %.3f %.3f %.3f",
+	"dx":"DX %.3f",
+	"dy":"DY %.3f",
+	"dz":"DZ %.3f",
+	"dxy":"DXY %.3f %.3f",
+	"dxyz":"DXYZ %.3f %.3f, %.3f",
+}
 
-#const r_tap_command:String = ' %d'
-const shot_command:String = 'S %d %d'
-var shot_spec:int = 2
-var shot_period:int = 200
-
-onready var stream := UdpStream.new(self)
+onready var command_stream: SerialStream = SerialStream.new(self)
+onready var camera_stream:SerialStream = SerialStream.new(self)
 
 signal rx_data(buf)
 signal hp_notified(hp)
 
-var move_vector:Vector2
+var relative_mode:bool = true
+var set_pos:Vector3 = Vector3.ZERO
+var ret_pos:Vector3 = Vector3.ZERO
 
+var max_spd:float = 1
+var max_pos_delta_per_frame:float = 0.1
+var max_acc:float = 1
 
-var toward_vector_target:Vector2
-var toward_vector_current:Vector2
-var toward_max_step:float = 4
-
-
-func tx_data(buf:PoolByteArray):
-	pass
 
 func send_line(ss:String):
-	stream.println(ss)
+	command_stream.println(ss)
 
+func send_command(args:Array):
+	if(!args.size()):
+		pass
+		
+	var header:String = args[0]
+	if(args.size() == 1):
+		command_stream.println(header)
+	else:
+		var paraments:Array
+		for i in range(1,args.size()):
+			var arg = args[i]
+			match typeof(arg):
+				TYPE_INT, TYPE_REAL:
+					paraments.push_back(float(arg))
+				TYPE_BOOL:
+					paraments.push_back(float(int(arg)))
+				TYPE_STRING:
+#					paraments.push_back(arg)
+					pass
+				TYPE_VECTOR2:
+					paraments.push_back(float((arg as Vector2).x))
+					paraments.push_back(float((arg as Vector2).y))
+				TYPE_VECTOR3:
+					paraments.push_back(float((arg as Vector3).x))
+					paraments.push_back(float((arg as Vector3).y))
+					paraments.push_back(float((arg as Vector3).z))
+		
+		var format:String = commands[header]
+		command_stream.println(format%paraments)
 
-func move_notify(vector:Vector2):
-	send_line(move_command%[vector.y, - pow(abs(vector.x), 0.8) * sign(vector.x) * TAU])
+func move_xyz(vector:Vector3):
+	if(relative_mode):
+		set_pos += vector * max_pos_delta_per_frame
+		send_command(["dxyz", set_pos])
+	else:
+		set_pos = vector
+		send_command(["xyz", set_pos])
 
-func shot_notify():
-	send_line(shot_command%[int(min(shot_period, 255)), shot_spec])
+func move_xy(vector:Vector2):
+	if(relative_mode):
+		var set_pos_xy:Vector2 = Vector2(set_pos.x, set_pos.y)
+		set_pos_xy += vector * max_pos_delta_per_frame
+		set_pos = Vector3(set_pos_xy.x, set_pos_xy.y, set_pos.z)
+		send_command(["dxy", set_pos_xy])
+	else:
+		set_pos = Vector3(vector.x, vector.y, set_pos.z)
+		send_command(["xy", vector])
+
+#func move_x(x:float):
+#	send_command(["x", x])
+#
+#func move_y(y:float):
+#	send_command(["y", y])
+
+func move_z(z:float):
+	send_command(["z", z])
+	
+func left_joystick_tap(vector:Vector2):
+	pass
 
 func left_joystick_drag(vector:Vector2):
-	move_notify(vector)
+	move_xy(vector)
 
-func left_joystick_tap(vector:Vector2):
-	move_notify(vector)
-
-func left_joystick_release(_vector:Vector2):
-	move_notify(Vector2(0,0))
-	move_notify(Vector2(0,0))
-
-func toward_notify(yaw_and_pitch:Vector2):
-	send_line(toward_command%[yaw_and_pitch.x, yaw_and_pitch.y])
-
-
-#func toward_update(delta:float):
-#	if(not (toward_vector_current - toward_vector_target).length_squared() < 0.0001):
-#		toward_vector_current = toward_vector_current.move_toward(toward_vector_target, toward_max_step * delta)
-#		toward_notify(toward_vector_current)
-#
+func left_joystick_release(vector:Vector2):
+	pass
 
 func right_joystick_drag(vector:Vector2):
-#	toward_vector_target = vector
-	toward_notify(vector)
+	move_z(vector.y)
+	pass
 
 
 func right_joystick_tap(vector:Vector2):
 
-#	toward_vector_target = vector
-	shot_notify()
-	toward_notify(vector)
+	pass
 
 
 func right_joystick_release(_vector:Vector2):
-	toward_vector_target = Vector2(0,0)
-
-
-func set_shot_period(period:int):
-	shot_period = period
-
-
-func set_shot_spec(spec:int):
-	shot_spec = spec
-
+#	toward_vector_target = Vector2(0,0)
+	pass
 
 func _ready():
-	stream.connect_stream()
+#	stream.connect_stream()
+	command_stream.enable_tx_log = true
 	pass
 
 func _physics_process(_delta):
@@ -88,7 +121,6 @@ func _physics_process(_delta):
 
 
 func _process(_delta):
-#	toward_update(_delta
 	pass
 
 

@@ -33,13 +33,16 @@ var frames:int = 0
 #	print(event);
 	
 func tap(vector:Vector2):
+	pass
 	emit_signal("tap_signal", vector * stick_vector_scaler)
 
 func drag(vector:Vector2):
+	pass
 	emit_signal("drag_signal", vector * stick_vector_scaler)
 
 func release(vector:Vector2):
-	emit_signal("release_signal", vector * stick_vector_scaler)
+	pass
+#	emit_signal("release_signal", vector * stick_vector_scaler)
 
 #func _physics_process(delta):
 #	frames += 1
