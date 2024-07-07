@@ -1,113 +1,65 @@
-extends Stream
+extends "Stream.gd"
 
 class_name SerialStream 
 
 const OfSerial = preload("res://addons/GDOfSerial/GDOfSerial.gdns")
 onready var instance := OfSerial.new()
 
+signal recv
 
-var com:String = "COM15"
-var baud:int = 115200
+var _temp_str:String
 
 func _init(parent:Node):
 	parent.add_child(self)
 
-func list():
-	var list: Array = instance.get_device_list()
-	print("serial list", list)
-	#
+func get_list() -> Array:
+	return instance.get_device_list()
 
-func connect_stream() -> void:
-	var list: Array = instance.get_device_list()
-	print("serial list", list)
+func connect_stream(com:String, baud:int) -> bool:
+	var m_list: Array = get_list()
 	
-	if(list and list.has(com)):
+	if(m_list and m_list.has(com)):
 		instance.begin(com, baud)
 		instance.flush()
 		connected = true
 	else:
 		connected = false
+	return connected
 
-func connect_to_host(_com:String, _baud:int):
-	com = _com
-	baud = _baud
-	connect_stream()
-
-
-func println(buf):
+func println(buf) -> void:
 	if(!connected):
 		return
 
+	var ss:String = ""
 	match(typeof(buf)):
-		TYPE_INT, TYPE_STRING:
-			instance.print(buf)
-			instance.print("\r\n")
-			print("[>]", buf)
+		
+		TYPE_INT: 
+			ss = str(buf)
+			
+		TYPE_STRING:
+			ss = buf
 
 		TYPE_RAW_ARRAY:
-			var ss:String = buf.get_string_from_ascii()
-			instance.print(ss)
-			instance.print("\r\n")
-			print("[>]", ss)
+			ss = buf.get_string_from_ascii()
 
+	instance.print(ss)
+	instance.print("\r\n")
+	if(self.enable_tx_log):
+		print("[>", self.name, "]", ss)
 
+func _recv(ss:String) -> void:
+	if(self.enable_rx_log):
+		print("[<", self.name, "]", ss)
 
-var temp_str:String
-var m_frames:int = 0
-
-
-func process_recv_data():
-	
-	var recv_len = instance.available()
-	if(recv_len):
-		var strs = instance.read_string(instance.available()).split("\r\n", false)
-		for lstr in strs:
-			print("[<]", lstr)
-#		var sp:Array = instance.read_string(instance.available()).split("\r\n")
-#		if(sp.size() == 1):
-#			print("[<]", sp[0])
-#		else:
-#			for i in range(sp.size()):
-#				var ss:String = sp[i]
-#				if(i == sp.size() - 1):
-#					remain_ss = ss
-#				else:
-#					print("[<]", ss)
-#
-#		if(sp.size()):
-#			remain_ss = sp[0]
-#		else:
-#			remain_ss = ""
-	if(instance.available()):
-		var chr:int = ord(instance.read())
-		if(chr == ord('\n')):
-			temp_str.strip_edges()
-			temp_str = ""
-		else:
-			temp_str += char(chr)
-
-#        if(logger.available()){
-#            char chr = logger.read();
-#            if(chr == '\n'){
-#                temp_str.trim();
-#                auto tokens = splitString(temp_str, ' ');
-#                auto argc = tokens[0][0];
-#                tokens.erase(tokens.begin());
-#                parseCommand(argc, tokens);
-#                temp_str = "";
-#            }else{
-#                temp_str.concat(chr);
-#            }
-#        }
-	m_frames += 1
-	if(m_frames % 19 == 0):
-		println(m_frames)
+func _process_recv_data():
+	var i:int = instance.available()
+	while i:
+		emit_signal("recv", instance.read())
+		i-=1
 
 func _process(_delta):
 	if connected:
-		process_recv_data()
-
+		_process_recv_data()
 
 func _ready():
-	connect_stream()
-
+	print(get_list())

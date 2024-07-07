@@ -1,7 +1,7 @@
 extends Control
 
-#onready var _serial: OfSerial = $"/root/OfSerial"
-onready var _serial: SerialStream = SerialStream.new(self)
+onready var serial: SerialStream = SerialStream.new(self)
+onready var serial_p:SerialStream = SerialStream.new(self)
 
 enum State{
 	IdleL,
@@ -75,10 +75,18 @@ func the_same_dict(dict:Dictionary) -> bool:
 	return same
  
 
-onready var camera_stream := TcpStream.new(self)
+#onready var camera_stream := TcpStream.new(self)
 func _ready() -> void:
-	camera_stream.connect_stream()
-	camera_stream.connect("recv", self, "process_datas")
+	serial.connect_stream(	"COM15", 115200)
+	serial.name = "B"
+	serial.connect("recv", self, "process_data")
+	
+	serial_p.connect_stream("COM12", 115200)
+	serial_p.name = "P"
+#	serial_p.connect("recv", self, "process_datas")
+	
+#	camera_stream.connect_stream()
+#	camera_stream.connect("recv", self, "process_datas")
 #	$JoystickLeft.connect("control_signal", self, "joystick_l_callback")
 #	$JoystickRight.connect("control_signal", self, "joystick_r_callback")
 	left_joystick.connect("drag_signal", Ctrl, "left_joystick_drag")
@@ -92,13 +100,15 @@ func _ready() -> void:
 #	image_load_thread.start(self, "image_load_task")
 #	image_recv_thread.start(self, "image_recv_task")
 #	image_data_thread.start(self, "image_data_task")
-	command_recv_thread.start(self, "command_recv_task")
+#	command_recv_thread.start(self, "command_recv_task")
 
 func joystick_l_callback(vect:Vector2):
-	update_velocity(Vector2(-vect.y, vect.x))
+#	update_velocity(Vector2(-vect.y, vect.x))
+	pass
 
 func joystick_r_callback(vect:Vector2):
-	update_face(vect)
+#	update_face(vect)
+	pass
 
 var last_image_index:int = 0
 var image_index:int = 0
@@ -109,110 +119,37 @@ var block_total:int = 0
 var frames:int = 0
 var to_send_list:Array
 
-func send(ss:String):
-	to_send_list.push_back(ss)
-
-var last_dir:Vector2 = Vector2.ZERO
-var last_face:Vector2 = Vector2.ZERO
-
-
-
-func update_velocity(dir:Vector2) -> void:
-	if last_dir != dir:
-		last_dir = dir
-		send("V " + str(dir.x)+" "+ str(dir.y))
-
-func update_face(face:Vector2) -> void:
-	if last_face != face:
-		last_face = face
-		send("F " + str(face.x)+" "+ str(face.y))
-
-#var udp_peer:PacketPeerUDP = null
-
 func _physics_process(_delta):
 	time_since += _delta
 	t += _delta
 	frames += 1
-
-
-func command_recv_task():
-	while(true):
-		pass
-	
-
-var peers:=[]
-#func command_recv_task() -> void:
-#	pass
-#	while(true):
-#		udp_server.poll()
-#		if udp_server.is_connection_available():
-#
-#			var peer : PacketPeerUDP = udp_server.take_connection()
-#			peers.append(peer)
-#			var pkt = peer.get_packet()
-#
-##			var bytes_temp:PoolByteArray
-##			for item in pkt:
-##				bytes_temp.append(item)
-#
-##			process_datas(pkt)
-##			if(pkt.size()):
-#			print(pkt.get_string_from_ascii().strip_edges())
-#			pee
-#			println(peer as PacketPeerUDP, "V 1 9 0")
-
-
-
-func image_recv_task() -> void:
-	pass
+#	if(frames % 60 == 0):
+#		serial_p.println(frames)
 
 
 func image_load_task():
 	while(true):
 		image_load_semaphore.wait()
-		load_image(image_full_data)
-		
+	load_image(image_full_data)
+
+
+
 func load_image(datas:PoolByteArray):
 		var image = Image.new()
-		var load_err:int = image.load_jpg_from_buffer(datas)
-		image.flip_y()
 
-	#	var load_err:int = OK
-	#	image.create_from_data(640, 480, false, Image.FORMAT_L8, _buf)
-	#	print("!")
-		if(load_err == OK):
-			var texture = ImageTexture.new()
-			texture.create_from_image(image)
-			$CenterContainer3/view.texture = texture
+		image.create_from_data(12, 12, false, Image.FORMAT_L8, datas)
 
-#func image_data_task():
-#	while(true):
-##		image_access_mutex.lock()
-#		print("??")
-#		var bytes:int = image_recved_bytes.pop_front()
-##		image_access_mutex.unlock()
-#
-#		for byte in bytes:
-#			process_data(byte)
+		image.flip_x()
 
-func process_datas(datas:PoolByteArray):
-#	bytes_since += datas.size()
-##	print("????", time_since)
-#	if(time_since):
-##		print(bytes_since / time_since/ 1000, "kB/S")
-#		pass
-
-	for data in datas:
-		process_data(data)
+		var texture = ImageTexture.new()
+		texture.create_from_image(image)
+		$CenterContainer3/view.texture = texture
 
 
 var done_cycle:bool = false
 
-
-
-
-
 func process_data(data:int):
+
 	match(state):
 		State.IdleL:
 			if(data == 0xA8):
@@ -220,7 +157,7 @@ func process_data(data:int):
 
 		State.IdleH:
 			if(data == 0x54):
-				state += 1
+				state = State.IMAGE_INDEX
 			else:
 				state = State.IdleL
 		State.IMAGE_INDEX:
@@ -257,25 +194,22 @@ func process_data(data:int):
 			state += 1
 		State.BLOCK_END_H:
 			image_block_temp.block_end |= (data << 8)
-			
-#			prints("iindex", image_index)
-#			prints("hash", image_block_temp.block_hash)
-#			prints("index", image_block_temp.block_index, image_index)
-#			prints("starts", image_block_temp.block_start)
-#			prints("ends", image_block_temp.block_end)
 
-#			image_blocks_data.clear()
-			
+			image_blocks_data.clear()
 			state = State.Collecting
+
 		State.Collecting:
 			image_block_data.append(data)
 			if(image_block_data.size() >= image_block_temp.block_end - image_block_temp.block_start):
 
-			# 	done_cycle = true
 				bytes_since = 0
 				time_since = 0
-#				prints(image_block_temp.image_index, image_block_temp.block_index, image_block_tkemp.block_total)
-				if(hash_djb2_buffer(image_block_data) == image_block_temp.block_hash):
+
+				var exp_hash:int = hash_djb2_buffer(image_block_data)
+				var real_hash:int = image_block_temp.block_hash
+#				var exp_hash = real_hash
+
+				if(exp_hash == real_hash):
 
 					var block_data_temp:PoolByteArray = []
 
@@ -285,25 +219,19 @@ func process_data(data:int):
 					image_blocks_data[image_block_temp.block_index] = block_data_temp
 					image_blocks_belong_index[image_block_temp.block_index] = image_block_temp.image_index
 
-					
+
 					if(image_block_temp.block_index == block_total - 1):
 						if(the_same_dict(image_blocks_belong_index)):
-
 							for key in image_blocks_data.keys():
 								image_full_data.append_array(image_blocks_data[key])
-
-#							image_load_semaphore.post()
 							load_image(image_full_data)
 
 						image_full_data.resize(0)
 						image_blocks_data.clear()
 						image_blocks_belong_index.clear()
-					
-
+				else:
+					print("nom", exp_hash, ",", real_hash)
 				image_block_data.resize(0)
-
 				state = State.IdleL
 
 
-#func _exit_tree():
-#	image_load_thread.wait_to_finish()
