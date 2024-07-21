@@ -1,8 +1,7 @@
 extends Control
 
-onready var serial: SerialStream = Ctrl.command_stream
-onready var serial_p:SerialStream = Ctrl.camera_stream
-onready var raw_img := ($CenterContainer3/view)
+onready var raw_img := ($CenterContainer3/raw)
+onready var chr_img := ($CenterContainer3/chr)
 
 enum State{
 	IdleL,
@@ -24,20 +23,20 @@ var state:int = State.IdleL
 var data_len:int = 0
 var data_hash:int = 0
 
-var image_load_thread:Thread = Thread.new()
-var image_recv_thread:Thread = Thread.new()
-var command_recv_thread:Thread = Thread.new()
-var image_data_thread:Thread = Thread.new()
-var image_load_semaphore:Semaphore = Semaphore.new()
-var image_access_mutex:Mutex = Mutex.new()
+#var image_load_thread:Thread = Thread.new()
+#var image_recv_thread:Thread = Thread.new()
+#var command_recv_thread:Thread = Thread.new()
+#var image_data_thread:Thread = Thread.new()
+#var image_load_semaphore:Semaphore = Semaphore.new()
+#var image_access_mutex:Mutex = Mutex.new()
 var time_since:float = 0
 var bytes_since:int = 0
-var udp_server := UDPServer.new()
+#var udp_server := UDPServer.new()
 
 var image_recved_bytes:Array = []
 var enter_recving:bool = false
 
-var block_cache:ImageBlock = ImageBlock.new()
+var block_info:ImageBlock = ImageBlock.new()
 var block_data:PoolByteArray = []
 
 var pieces:Dictionary = {}
@@ -45,7 +44,7 @@ var stamps:Dictionary = {}
 
 var t:float = 0
 
-const mtu = 180
+const mtu = 320
 
 onready var left_joystick := $JoystickLeft
 onready var right_joystick := $JoystickRight
@@ -81,22 +80,18 @@ func the_same_dict(dict:Dictionary) -> bool:
  
 
 func _ready() -> void:
-	serial.connect_stream(	"COM15", 1000000)
-	serial.name = "B"
-	serial.connect("recv", self, "process_data")
 	
-	serial_p.connect_stream("COM6", 115200)
-	serial_p.name = "P"
-
 	left_joystick.connect("drag_signal", Ctrl, "left_joystick_drag")
 	left_joystick.connect("tap_signal", Ctrl, "left_joystick_tap")
 	left_joystick.connect("release_signal", Ctrl, "left_joystick_release")
-
+	left_joystick.connect("sustain_signal", Ctrl, "left_joystick_sustain")
+	
 	right_joystick.connect("drag_signal", Ctrl, "right_joystick_drag")
 	right_joystick.connect("tap_signal", Ctrl, "right_joystick_tap")
 	right_joystick.connect("release_signal", Ctrl, "right_joystick_release")
+	right_joystick.connect("sustain_signal", Ctrl, "right_joystick_sustain")
 
-
+	Ctrl.camera_stream.connect("recv", self, "process_datas")
 
 var last_image_index:int = 0
 var image_index:int = 0
@@ -122,19 +117,26 @@ func _physics_process(_delta):
 
 
 
-func load_image(data:PoolByteArray, size:Vector2):
+func load_image(data:PoolByteArray, size:Vector2, image_sp:int):
 		var image = Image.new()
 		var texture = ImageTexture.new()
 
 		image.create_from_data(int(size.x), int(size.y), false, Image.FORMAT_L8, data)
-
 		texture.create_from_image(image)
-		raw_img.texture = texture
+		match(image_sp):
+			0:
+				raw_img.texture = texture
+			1:
+				chr_img.texture = texture
 
 
 var done_cycle:bool = false
 
-func process_data(data:int):
+func process_datas(datas:PoolByteArray) -> void:
+	for data in datas:
+		process_data(data)
+
+func process_data(data:int) -> void:
 
 	match(state):
 		State.IdleL:
@@ -147,48 +149,55 @@ func process_data(data:int):
 			else:
 				state = State.IdleL
 		State.TRANS_TYPE:
+			block_info.trans_type = data
 			state += 1
 
 		State.HASH0:
-			block_cache.hashcode = data
+			block_info.hashcode = data
 			state += 1
 		State.HASH1:
-			block_cache.hashcode |= (data << 8)
+			block_info.hashcode |= (data << 8)
 			state += 1
 		State.HASH2:
-			block_cache.hashcode |= (data << 16)
+			block_info.hashcode |= (data << 16)
 			state += 1
 		State.HASH3:
-			block_cache.hashcode |= (data << 24)
+			block_info.hashcode |= (data << 24)
 			state += 1
 		State.TIME_STAMP:
 			image_index = data
-			block_cache.time_stamp = data
+			block_info.time_stamp = data
 			state += 1
 		State.SIZE_X:
-			block_cache.size_x = data
+			block_info.size_x = data
 			state += 1
 		State.SIZE_Y:
-			block_cache.size_y = data
+			block_info.size_y = data
 			state += 1
 		State.DATA_INDEX_L:
-			block_cache.data_index = data
+			block_info.data_index = data
 			state += 1
 		State.DATA_INDEX_H:
-			block_cache.data_index |= (data << 8)
+			block_info.data_index |= (data << 8)
 			block_data.resize(0)
-#
-#			prints(block_cache.time_stamp, block_cache.size_x, block_cache.size_y, block_cache.data_index)
 
 			state = State.Collecting
 
 		State.Collecting:
-			block_data.append(data)
-			if(block_data.size() >= min(mtu, block_cache.size_x * block_cache.size_y - block_cache.data_index)):
-				var block_total:int = int(ceil(float(block_cache.size_x * block_cache.size_y) / mtu))
-				var exp_hash:int = hash_djb2_buffer(block_data)
-				var real_hash:int = block_cache.hashcode
+			if(not block_info.is_packed()):
+				block_data.append(data)
+			else:
+				for i in range(0, 8):
+					if(data & (1 << i)):
+						block_data.append(255)
+					else:
+						block_data.append(0)
 
+			if(block_data.size() >= min(mtu, block_info.size_x * block_info.size_y - block_info.data_index)):
+				var block_total:int = int(ceil(float(block_info.size_x * block_info.size_y) / mtu))
+				var exp_hash:int = hash_djb2_buffer(block_data)
+				var real_hash:int = block_info.hashcode
+#				var exp_hash = real_hash
 				if(exp_hash == real_hash):
 
 					var block_data_clone:PoolByteArray = []
@@ -196,19 +205,19 @@ func process_data(data:int):
 					for item in block_data:
 						block_data_clone.append(item)
 
-					var block_index = block_cache.data_index / mtu
+					var block_index = block_info.data_index / mtu
 					pieces[block_index] = block_data_clone
-					stamps[block_index] = block_cache.time_stamp
+					stamps[block_index] = block_info.time_stamp
 
-					if(block_cache.data_index == (block_total - 1) * mtu):#last block
+					if(block_info.data_index == (block_total - 1) * mtu):#last block
 						if(the_same_dict(stamps)):
 							var image_full_data:PoolByteArray = []
 							for key in pieces.keys():
 								image_full_data.append_array(pieces[key])
 							
-							var size:Vector2 = Vector2(block_cache.size_x, block_cache.size_y)
-							if(image_full_data.size() == block_cache.size_x * block_cache.size_y):
-								load_image(image_full_data, size)
+							var size:Vector2 = Vector2(block_info.size_x, block_info.size_y)
+							if(image_full_data.size() == block_info.size_x * block_info.size_y):
+								load_image(image_full_data, size, block_info.trans_type)
 							else:
 								print("size error")
 
@@ -220,3 +229,19 @@ func process_data(data:int):
 				state = State.IdleL
 
 
+
+
+func _on_cali_pressed():
+	Ctrl.cali()
+
+func _on_reset_pressed():
+	Ctrl.reset()
+
+func _on_home_pressed():
+	Ctrl.home()
+
+func _on_prepare_pressed():
+	Ctrl.prepare()
+
+func _on_save_pressed():
+	Ctrl.save()

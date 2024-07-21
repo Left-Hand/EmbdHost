@@ -15,6 +15,7 @@ var stick_vector_scaler = Vector2(1, -1)
 signal control_signal(vector)
 
 signal drag_signal(vector)
+signal sustain_signal(vector)
 signal tap_signal(vector)
 signal release_signal(vector)
 
@@ -33,12 +34,16 @@ var frames:int = 0
 #	print(event);
 	
 func tap(vector:Vector2):
-	pass
 	emit_signal("tap_signal", vector * stick_vector_scaler)
 
+
 func drag(vector:Vector2):
-	pass
 	emit_signal("drag_signal", vector * stick_vector_scaler)
+
+
+func sustain(vector:Vector2):
+	emit_signal("sustain_signal", vector * stick_vector_scaler)
+
 
 func release(vector:Vector2):
 	pass

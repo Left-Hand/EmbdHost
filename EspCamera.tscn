@@ -1,7 +1,11 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://EspCamera.gd" type="Script" id=1]
 [ext_resource path="res://scenes/joystick/joystick.tscn" type="PackedScene" id=2]
+[ext_resource path="res://theme.tres" type="Theme" id=3]
+[ext_resource path="res://Actor.gd" type="Script" id=4]
+[ext_resource path="res://Craw.gd" type="Script" id=5]
+[ext_resource path="res://Vision.gd" type="Script" id=6]
 
 [node name="EspCamera" type="Control"]
 anchor_right = 1.0
@@ -14,8 +18,13 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 
-[node name="view" type="Sprite" parent="CenterContainer3"]
-scale = Vector2( 2, 2 )
+[node name="chr" type="Sprite" parent="CenterContainer3"]
+position = Vector2( 150, 250 )
+scale = Vector2( 4, 4 )
+
+[node name="raw" type="Sprite" parent="CenterContainer3"]
+position = Vector2( -80, 250 )
+scale = Vector2( 3, 3 )
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 anchor_top = 1.0
@@ -33,7 +42,503 @@ margin_left = -300.0
 margin_top = -200.0
 
 [node name="JoystickLeft" parent="." instance=ExtResource( 2 )]
-position = Vector2( 300, 520 )
+visible = false
+position = Vector2( 300, 600 )
 
 [node name="JoystickRight" parent="." instance=ExtResource( 2 )]
-position = Vector2( 1300, 520 )
+position = Vector2( 1300, 600 )
+
+[node name="BasicCtrl" type="Panel" parent="."]
+anchor_right = 0.15
+anchor_bottom = 0.5
+rect_pivot_offset = Vector2( -344, -171 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="BasicCtrl"]
+anchor_left = 0.1
+anchor_right = 0.9
+anchor_bottom = 1.0
+
+[node name="ColorRect" type="ColorRect" parent="BasicCtrl/VBoxContainer"]
+margin_right = 192.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 0, 60 )
+size_flags_stretch_ratio = 0.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="Label" type="Label" parent="BasicCtrl/VBoxContainer/ColorRect"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "基本控制"
+align = 1
+valign = 1
+
+[node name="HSeparator" type="HSeparator" parent="BasicCtrl/VBoxContainer"]
+margin_top = 64.0
+margin_right = 192.0
+margin_bottom = 68.0
+
+[node name="misc" type="VBoxContainer" parent="BasicCtrl/VBoxContainer"]
+margin_top = 72.0
+margin_right = 192.0
+margin_bottom = 360.0
+rect_min_size = Vector2( 120, 0 )
+size_flags_vertical = 15
+
+[node name="reset" type="Button" parent="BasicCtrl/VBoxContainer/misc"]
+margin_right = 192.0
+margin_bottom = 36.0
+theme = ExtResource( 3 )
+text = "系统复位"
+
+[node name="cali" type="Button" parent="BasicCtrl/VBoxContainer/misc"]
+margin_top = 40.0
+margin_right = 192.0
+margin_bottom = 76.0
+text = "电机校准"
+
+[node name="save" type="Button" parent="BasicCtrl/VBoxContainer/misc"]
+margin_top = 80.0
+margin_right = 192.0
+margin_bottom = 116.0
+text = "电机保存配置"
+
+[node name="load" type="Button" parent="BasicCtrl/VBoxContainer/misc"]
+margin_top = 120.0
+margin_right = 192.0
+margin_bottom = 156.0
+text = "电机读取配置"
+
+[node name="home" type="Button" parent="BasicCtrl/VBoxContainer/misc"]
+margin_top = 160.0
+margin_right = 192.0
+margin_bottom = 196.0
+text = "电机归位"
+
+[node name="prepare" type="Button" parent="BasicCtrl/VBoxContainer/misc"]
+margin_top = 200.0
+margin_right = 192.0
+margin_bottom = 236.0
+text = "电机回中"
+
+[node name="MottorCtrl" type="Panel" parent="."]
+anchor_right = 0.15
+anchor_bottom = 0.5
+margin_left = 262.0
+margin_top = 1.0
+margin_right = 262.0
+margin_bottom = 1.0
+rect_pivot_offset = Vector2( -344, -171 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MottorCtrl"]
+anchor_left = 0.1
+anchor_right = 0.9
+anchor_bottom = 1.0
+
+[node name="ColorRect" type="ColorRect" parent="MottorCtrl/VBoxContainer"]
+margin_right = 192.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 0, 60 )
+size_flags_stretch_ratio = 0.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="Label" type="Label" parent="MottorCtrl/VBoxContainer/ColorRect"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "电机控制"
+align = 1
+valign = 1
+
+[node name="HSeparator" type="HSeparator" parent="MottorCtrl/VBoxContainer"]
+margin_top = 64.0
+margin_right = 192.0
+margin_bottom = 68.0
+
+[node name="misc" type="VBoxContainer" parent="MottorCtrl/VBoxContainer"]
+margin_top = 72.0
+margin_right = 192.0
+margin_bottom = 360.0
+rect_min_size = Vector2( 120, 0 )
+size_flags_vertical = 15
+
+[node name="Label" type="Label" parent="MottorCtrl/VBoxContainer/misc"]
+margin_right = 192.0
+margin_bottom = 30.0
+text = "电机编号"
+align = 1
+valign = 1
+
+[node name="OptionButton" type="OptionButton" parent="MottorCtrl/VBoxContainer/misc"]
+margin_top = 34.0
+margin_right = 192.0
+margin_bottom = 70.0
+text = "X轴电机"
+align = 2
+items = [ "X轴电机", null, false, 0, null, "Y轴电机", null, false, 1, null, "Z轴电机", null, false, 2, null, "全体电机", null, false, 3, null ]
+selected = 0
+
+[node name="Label2" type="Label" parent="MottorCtrl/VBoxContainer/misc"]
+margin_top = 74.0
+margin_right = 192.0
+margin_bottom = 104.0
+text = "控制方式"
+align = 1
+valign = 1
+
+[node name="OptionButton2" type="OptionButton" parent="MottorCtrl/VBoxContainer/misc"]
+margin_top = 108.0
+margin_right = 192.0
+margin_bottom = 144.0
+text = "开环"
+align = 2
+items = [ "开环", null, false, 0, null, "电流闭环", null, false, 1, null, "位置闭环", null, false, 2, null, "速度闭环", null, false, 3, null, "梯形位置闭环", null, false, 4, null, "S形位置闭环", null, false, 5, null ]
+selected = 0
+
+[node name="Label3" type="Label" parent="MottorCtrl/VBoxContainer/misc"]
+margin_top = 148.0
+margin_right = 192.0
+margin_bottom = 178.0
+text = "设定值"
+align = 1
+valign = 1
+
+[node name="LineEdit" type="LineEdit" parent="MottorCtrl/VBoxContainer/misc"]
+margin_top = 182.0
+margin_right = 192.0
+margin_bottom = 222.0
+text = "4"
+align = 2
+
+[node name="prepare2" type="Button" parent="MottorCtrl/VBoxContainer/misc"]
+margin_top = 226.0
+margin_right = 192.0
+margin_bottom = 262.0
+text = "执行"
+
+[node name="CoordCtrl" type="Panel" parent="."]
+anchor_right = 0.15
+anchor_bottom = 0.5
+margin_left = 520.0
+margin_top = 1.0
+margin_right = 510.0
+margin_bottom = 1.0
+rect_pivot_offset = Vector2( -344, -171 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CoordCtrl"]
+anchor_left = 0.1
+anchor_right = 0.9
+anchor_bottom = 1.0
+
+[node name="ColorRect" type="ColorRect" parent="CoordCtrl/VBoxContainer"]
+margin_right = 184.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 0, 60 )
+size_flags_stretch_ratio = 0.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="Label" type="Label" parent="CoordCtrl/VBoxContainer/ColorRect"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "坐标控制"
+align = 1
+valign = 1
+
+[node name="HSeparator" type="HSeparator" parent="CoordCtrl/VBoxContainer"]
+margin_top = 64.0
+margin_right = 184.0
+margin_bottom = 68.0
+
+[node name="misc" type="VBoxContainer" parent="CoordCtrl/VBoxContainer"]
+margin_top = 72.0
+margin_right = 184.0
+margin_bottom = 360.0
+rect_min_size = Vector2( 120, 0 )
+size_flags_vertical = 15
+
+[node name="Label" type="Label" parent="CoordCtrl/VBoxContainer/misc"]
+margin_right = 184.0
+margin_bottom = 30.0
+text = "X坐标："
+
+[node name="LineEdit" type="LineEdit" parent="CoordCtrl/VBoxContainer/misc"]
+margin_top = 34.0
+margin_right = 184.0
+margin_bottom = 74.0
+text = "0mm"
+align = 2
+
+[node name="Label2" type="Label" parent="CoordCtrl/VBoxContainer/misc"]
+margin_top = 78.0
+margin_right = 184.0
+margin_bottom = 108.0
+text = "Y坐标："
+
+[node name="LineEdit2" type="LineEdit" parent="CoordCtrl/VBoxContainer/misc"]
+margin_top = 112.0
+margin_right = 184.0
+margin_bottom = 152.0
+text = "0mm"
+align = 2
+
+[node name="Label3" type="Label" parent="CoordCtrl/VBoxContainer/misc"]
+margin_top = 156.0
+margin_right = 184.0
+margin_bottom = 186.0
+text = "Z坐标："
+
+[node name="LineEdit3" type="LineEdit" parent="CoordCtrl/VBoxContainer/misc"]
+margin_top = 190.0
+margin_right = 184.0
+margin_bottom = 230.0
+text = "0mm"
+align = 2
+
+[node name="prepare3" type="Button" parent="CoordCtrl/VBoxContainer/misc"]
+margin_top = 234.0
+margin_right = 184.0
+margin_bottom = 270.0
+text = "执行"
+
+[node name="Actor" type="Panel" parent="."]
+anchor_right = 0.15
+anchor_bottom = 0.45
+margin_left = 1280.0
+margin_right = 1280.0
+script = ExtResource( 4 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Actor"]
+anchor_left = 0.1
+anchor_right = 0.9
+anchor_bottom = 1.0
+
+[node name="ColorRect" type="ColorRect" parent="Actor/VBoxContainer"]
+margin_right = 192.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 0, 60 )
+size_flags_stretch_ratio = 0.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="Label" type="Label" parent="Actor/VBoxContainer/ColorRect"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "动作演示"
+align = 1
+valign = 1
+
+[node name="HSeparator" type="HSeparator" parent="Actor/VBoxContainer"]
+margin_top = 64.0
+margin_right = 192.0
+margin_bottom = 68.0
+
+[node name="misc" type="VBoxContainer" parent="Actor/VBoxContainer"]
+margin_top = 72.0
+margin_right = 192.0
+margin_bottom = 324.0
+rect_min_size = Vector2( 120, 0 )
+size_flags_vertical = 15
+
+[node name="none" type="Button" parent="Actor/VBoxContainer/misc"]
+margin_right = 192.0
+margin_bottom = 36.0
+text = "无"
+
+[node name="hui" type="Button" parent="Actor/VBoxContainer/misc"]
+margin_top = 40.0
+margin_right = 192.0
+margin_bottom = 76.0
+theme = ExtResource( 3 )
+text = "回字曲线"
+
+[node name="lisa" type="Button" parent="Actor/VBoxContainer/misc"]
+margin_top = 80.0
+margin_right = 192.0
+margin_bottom = 116.0
+text = "利萨茹曲线"
+
+[node name="grab" type="Button" parent="Actor/VBoxContainer/misc"]
+margin_top = 120.0
+margin_right = 192.0
+margin_bottom = 156.0
+text = "抓取物块"
+
+[node name="inter" type="Button" parent="Actor/VBoxContainer/misc"]
+margin_top = 160.0
+margin_right = 192.0
+margin_bottom = 196.0
+text = "高次插值"
+
+[node name="replay" type="Button" parent="Actor/VBoxContainer/misc"]
+margin_top = 200.0
+margin_right = 192.0
+margin_bottom = 236.0
+text = "重复定位"
+
+[node name="Vision" type="Panel" parent="."]
+anchor_right = 0.15
+anchor_bottom = 0.4
+margin_left = 1020.0
+margin_right = 1020.0
+script = ExtResource( 6 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Vision"]
+anchor_left = 0.1
+anchor_right = 0.9
+anchor_bottom = 1.0
+
+[node name="ColorRect" type="ColorRect" parent="Vision/VBoxContainer"]
+margin_right = 192.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 0, 60 )
+size_flags_stretch_ratio = 0.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="Label" type="Label" parent="Vision/VBoxContainer/ColorRect"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "视觉演示"
+align = 1
+valign = 1
+
+[node name="HSeparator" type="HSeparator" parent="Vision/VBoxContainer"]
+margin_top = 64.0
+margin_right = 192.0
+margin_bottom = 68.0
+
+[node name="misc" type="VBoxContainer" parent="Vision/VBoxContainer"]
+margin_top = 72.0
+margin_right = 192.0
+margin_bottom = 288.0
+rect_min_size = Vector2( 120, 0 )
+size_flags_vertical = 15
+
+[node name="find" type="Button" parent="Vision/VBoxContainer/misc"]
+margin_right = 192.0
+margin_bottom = 36.0
+theme = ExtResource( 3 )
+text = "寻找数字8"
+
+[node name="reco" type="Button" parent="Vision/VBoxContainer/misc"]
+margin_top = 40.0
+margin_right = 192.0
+margin_bottom = 76.0
+text = "文字识别"
+
+[node name="usbon" type="Button" parent="Vision/VBoxContainer/misc"]
+margin_top = 80.0
+margin_right = 192.0
+margin_bottom = 116.0
+text = "启动USB图传"
+
+[node name="usboff" type="Button" parent="Vision/VBoxContainer/misc"]
+margin_top = 120.0
+margin_right = 192.0
+margin_bottom = 156.0
+text = "关闭USB图传"
+
+[node name="Craw" type="Panel" parent="."]
+anchor_right = 0.15
+anchor_bottom = 0.56
+margin_left = 765.0
+margin_right = 755.0
+rect_pivot_offset = Vector2( -344, -171 )
+script = ExtResource( 5 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Craw"]
+anchor_left = 0.1
+anchor_right = 0.9
+anchor_bottom = 1.0
+
+[node name="ColorRect" type="ColorRect" parent="Craw/VBoxContainer"]
+margin_right = 184.0
+margin_bottom = 60.0
+rect_min_size = Vector2( 0, 60 )
+size_flags_stretch_ratio = 0.0
+color = Color( 0, 0, 0, 1 )
+
+[node name="Label" type="Label" parent="Craw/VBoxContainer/ColorRect"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "末端控制"
+align = 1
+valign = 1
+
+[node name="HSeparator" type="HSeparator" parent="Craw/VBoxContainer"]
+margin_top = 64.0
+margin_right = 184.0
+margin_bottom = 68.0
+
+[node name="misc" type="VBoxContainer" parent="Craw/VBoxContainer"]
+margin_top = 72.0
+margin_right = 184.0
+margin_bottom = 403.0
+rect_min_size = Vector2( 120, 0 )
+size_flags_vertical = 15
+
+[node name="Label" type="Label" parent="Craw/VBoxContainer/misc"]
+margin_right = 184.0
+margin_bottom = 30.0
+text = "吸盘压缩量"
+
+[node name="LineEdit" type="LineEdit" parent="Craw/VBoxContainer/misc"]
+margin_top = 34.0
+margin_right = 184.0
+margin_bottom = 74.0
+text = "4mm"
+align = 2
+
+[node name="Label2" type="Label" parent="Craw/VBoxContainer/misc"]
+margin_top = 78.0
+margin_right = 184.0
+margin_bottom = 108.0
+text = "吸盘吸力"
+
+[node name="LineEdit2" type="LineEdit" parent="Craw/VBoxContainer/misc"]
+margin_top = 112.0
+margin_right = 184.0
+margin_bottom = 152.0
+text = "100%"
+align = 2
+
+[node name="pick" type="Button" parent="Craw/VBoxContainer/misc"]
+margin_top = 156.0
+margin_right = 184.0
+margin_bottom = 192.0
+text = "吸住"
+
+[node name="hold" type="Button" parent="Craw/VBoxContainer/misc"]
+margin_top = 196.0
+margin_right = 184.0
+margin_bottom = 232.0
+text = "拾起"
+
+[node name="drop" type="Button" parent="Craw/VBoxContainer/misc"]
+margin_top = 236.0
+margin_right = 184.0
+margin_bottom = 272.0
+text = "放下"
+
+[node name="throw" type="Button" parent="Craw/VBoxContainer/misc"]
+margin_top = 276.0
+margin_right = 184.0
+margin_bottom = 312.0
+text = "挣脱"
+
+[connection signal="pressed" from="BasicCtrl/VBoxContainer/misc/reset" to="." method="_on_reset_pressed"]
+[connection signal="pressed" from="BasicCtrl/VBoxContainer/misc/cali" to="." method="_on_cali_pressed"]
+[connection signal="pressed" from="BasicCtrl/VBoxContainer/misc/save" to="." method="_on_save_pressed"]
+[connection signal="pressed" from="BasicCtrl/VBoxContainer/misc/load" to="." method="_on_save_pressed"]
+[connection signal="pressed" from="BasicCtrl/VBoxContainer/misc/home" to="." method="_on_home_pressed"]
+[connection signal="pressed" from="BasicCtrl/VBoxContainer/misc/prepare" to="." method="_on_prepare_pressed"]
+[connection signal="pressed" from="Actor/VBoxContainer/misc/none" to="Actor" method="_on_none_pressed"]
+[connection signal="pressed" from="Actor/VBoxContainer/misc/hui" to="Actor" method="_on_hui_pressed"]
+[connection signal="pressed" from="Actor/VBoxContainer/misc/lisa" to="Actor" method="_on_lisa_pressed"]
+[connection signal="pressed" from="Actor/VBoxContainer/misc/grab" to="Actor" method="_on_grab_pressed"]
+[connection signal="pressed" from="Actor/VBoxContainer/misc/inter" to="Actor" method="_on_inter_pressed"]
+[connection signal="pressed" from="Actor/VBoxContainer/misc/replay" to="Actor" method="_on_replay_pressed"]
+[connection signal="pressed" from="Vision/VBoxContainer/misc/find" to="Vision" method="_on_find_pressed"]
+[connection signal="pressed" from="Vision/VBoxContainer/misc/reco" to="Vision" method="_on_reco_pressed"]
+[connection signal="pressed" from="Vision/VBoxContainer/misc/usbon" to="Vision" method="_on_usbon_pressed"]
+[connection signal="pressed" from="Vision/VBoxContainer/misc/usboff" to="Vision" method="_on_usboff_pressed"]
+[connection signal="pressed" from="Craw/VBoxContainer/misc/pick" to="Craw" method="_on_pick_pressed"]
+[connection signal="pressed" from="Craw/VBoxContainer/misc/hold" to="Craw" method="_on_hold_pressed"]
+[connection signal="pressed" from="Craw/VBoxContainer/misc/drop" to="Craw" method="_on_drop_pressed"]
+[connection signal="pressed" from="Craw/VBoxContainer/misc/throw" to="Craw" method="_on_throw_pressed"]
