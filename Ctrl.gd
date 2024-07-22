@@ -193,9 +193,10 @@ func _ready():
 	
 
 	
-	command_stream.enable_tx_log = true
+#	command_stream.enable_tx_log = true
 	command_stream.enable_rx_log = true
 	logger_stream.enable_tx_log = true
+#	logger_stream.enable_rx_log = true
 
 func _physics_process(_delta):
 	pass

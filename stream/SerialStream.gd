@@ -67,6 +67,9 @@ func _process_recv_data():
 		arr.append(instance.read())
 		i-=1
 
+	if(self.enable_rx_log):
+		print("[<", self.name, "]", arr.get_string_from_ascii())
+
 	emit_signal("recv", arr)
 func _process(_delta):
 	if connected:
